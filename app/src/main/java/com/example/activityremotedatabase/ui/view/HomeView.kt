@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,8 +28,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -37,8 +43,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.activityremotedatabase.R
-import com.example.activityremotedatabase.model.Mahasiswa
 import com.example.activityremotedatabase.ui.customwidget.CostumeTopAppBar
+import com.example.activityremotedatabase.model.Mahasiswa
 import com.example.activityremotedatabase.ui.navigation.DestinasiNavigasi
 import com.example.activityremotedatabase.ui.viewmodel.HomeUiState
 import com.example.activityremotedatabase.ui.viewmodel.HomeViewModel
@@ -58,7 +64,7 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(factory = PenyediaViewModel.Factory)
 ) {
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
-    Scaffold (
+    Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CostumeTopAppBar(
@@ -70,7 +76,6 @@ fun HomeScreen(
                 }
             )
         },
-
         floatingActionButton = {
             FloatingActionButton(
                 onClick = navigateToItemEntry,
@@ -80,11 +85,12 @@ fun HomeScreen(
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add Mahasiswa")
             }
         },
-    ){ innerPadding ->
+    ) { innerPadding ->
         HomeStatus(
             homeUiState = viewModel.mhsUIState,
             retryAction = { viewModel.getMhs() }, modifier = Modifier.padding(innerPadding),
-            onDetailClick = onDetailClick, onDeleteClick = {
+            onDetailClick = onDetailClick,
+            onDeleteClick = {
                 viewModel.deleteMhs(it.nim)
                 viewModel.getMhs()
             }
@@ -99,14 +105,13 @@ fun HomeStatus(
     modifier: Modifier = Modifier,
     onDeleteClick: (Mahasiswa) -> Unit = {},
     onDetailClick: (String) -> Unit
-) {
+){
     when (homeUiState) {
-        is HomeUiState.Loading -> OnLoading(modifier = Modifier.fillMaxSize())
-
+        is HomeUiState.Loading -> OnLoading(modifier = modifier.fillMaxSize())
         is HomeUiState.Success ->
-            if (homeUiState.mahasiswa.isEmpty()) {
+            if (homeUiState.mahasiswa.isEmpty()){
                 return Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Tidak ada data Mahasiswa")
+                    Text(text = "Tidak ada data Mahasiswa" )
                 }
             } else {
                 MhsLayout(
@@ -171,14 +176,13 @@ fun MhsLayout(
         items(mahasiswa) { mahasiswa ->
             MhsCard(
                 mahasiswa = mahasiswa,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .clickable { onDetailClick(mahasiswa) },
                 onDeleteClick = {
                     onDeleteClick(mahasiswa)
                 }
             )
-
         }
     }
 }
@@ -189,7 +193,21 @@ fun MhsCard(
     modifier: Modifier = Modifier,
     onDeleteClick: (Mahasiswa) -> Unit = {}
 ) {
-    Card (
+    var showDialog by remember { mutableStateOf(false) }
+
+    if (showDialog) {
+        DeleteConfirmationDialog(
+            onDeleteConfirm = {
+                showDialog = false
+                onDeleteClick(mahasiswa)
+            },
+            onDeleteCancel = {
+                showDialog = false
+            }
+        )
+    }
+
+    Card(
         modifier = modifier,
         shape = MaterialTheme.shapes.medium,
         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
@@ -207,7 +225,7 @@ fun MhsCard(
                     style = MaterialTheme.typography.titleLarge,
                 )
                 Spacer(Modifier.weight(1f))
-                IconButton(onClick = {onDeleteClick(mahasiswa)}) {
+                IconButton(onClick = { showDialog = true }) {
                     Icon(
                         imageVector = Icons.Default.Delete,
                         contentDescription = null,
@@ -218,7 +236,6 @@ fun MhsCard(
                     style = MaterialTheme.typography.titleMedium
                 )
             }
-
             Text(
                 text = mahasiswa.kelas,
                 style = MaterialTheme.typography.titleMedium
@@ -229,4 +246,27 @@ fun MhsCard(
             )
         }
     }
+}
+
+
+@Composable
+private fun DeleteConfirmationDialog(
+    onDeleteConfirm: () -> Unit,
+    onDeleteCancel: () -> Unit,
+    modifier: Modifier = Modifier
+){
+    AlertDialog(onDismissRequest = { /*Do nothing*/ },
+        title = { Text("Delete Data")},
+        text = { Text("Apakah anda yakin ingin menghapus data?")},
+        dismissButton = {
+            TextButton(onClick = { onDeleteCancel() }) {
+                Text(text = "Cancel")
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onDeleteConfirm() }) {
+                Text(text = "Yes")
+            }
+        }
+    )
 }
