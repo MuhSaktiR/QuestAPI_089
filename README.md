@@ -54,7 +54,7 @@ Halaman Update ( Edit )
 ![Screenshot 2024-12-30 092756](https://github.com/user-attachments/assets/c6530869-5963-463f-98f0-8575eedc3b32)
 
 
-Halaman Delete
+Halaman Home ( Fitur Delete )
 
 
 ![Screenshot 2024-12-30 090153](https://github.com/user-attachments/assets/799828ae-fe74-46f7-bedf-667182f4c544)
