@@ -9,7 +9,8 @@ import coil.network.HttpException
 import com.example.activityremotedatabase.model.Mahasiswa
 import com.example.activityremotedatabase.repository.MahasiswaRepository
 import kotlinx.coroutines.launch
-import okio.IOException
+import java.io.IOException
+
 
 sealed class HomeUiState {
     data class Success(val mahasiswa: List<Mahasiswa>) : HomeUiState()
